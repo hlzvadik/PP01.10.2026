@@ -27,10 +27,15 @@ int main() {
     execl("./child", "child", p, NULL);
   }
   err = close(rd);
-  std::string msg;
-  std::cout << "Type string, complete with EOF:\n";
-  std::getline(std::cin, msg, '\0');
-  send(err, wr, msg.c_str(), msg.size());
+  printf("Type string, complete with EOF:\n");
+  char msg[255];
+  int scans = fread(msg, 1, sizeof(msg), stdin);
+  while (scans == 255) {
+    send(err, wr, msg, scans);
+    scans = fread(msg, 1, sizeof(msg), stdin);
+  }
+  msg[scans] = '\0';
+  send(err, wr, msg, scans + 1);
   err = close(wr);
   err = waitpid(pid, 0, 0);
 }
